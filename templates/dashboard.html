@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok Link Tracker</title>
+<style>
+    body { font-family:-apple-system,"Segoe UI",sans-serif; max-width:1100px; margin:20px auto; padding:0 20px; color:#111; }
+    h1 { color:#fe2c55; }
+    h3 { margin-top:30px; }
+    .stats { display:flex; gap:15px; margin:20px 0; flex-wrap:wrap; }
+    .stat-box { background:#f5f5f5; padding:15px; border-radius:10px; flex:1; min-width:180px; }
+    .stat-num { font-size:2em; font-weight:bold; color:#fe2c55; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; font-size:14px; }
+    th, td { padding:8px; text-align:left; border-bottom:1px solid #e0e0e0; vertical-align:middle; }
+    th { background:#25f4ee; color:#000; }
+    tr:hover { background:#fafafa; }
+    form { background:#f9f9f9; padding:20px; border-radius:10px; margin:20px 0; }
+    input[type=url], input[type=text] { padding:9px; width:100%; margin:6px 0; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; }
+    button { background:#fe2c55; color:#fff; border:none; padding:10px 22px; border-radius:6px; cursor:pointer; font-size:15px; }
+    button:hover { background:#e0244b; }
+    .link-box { width:100%; color:#fe2c55; font-weight:bold; border:1px dashed #fe2c55; border-radius:6px; padding:8px; box-sizing:border-box; background:#fff; }
+    .btn-copy { background:#25f4ee; color:#000; padding:6px 12px; font-size:13px; }
+    .nota { color:#666; font-size:13px; }
+</style>
+</head>
+<body>
+<h1>📊 TikTok Link Tracker</h1>
+
+<div class="stats">
+    <div class="stat-box">
+        <div class="stat-num">{{ stats.totale_click }}</div>
+        <div>Click totali</div>
+    </div>
+    <div class="stat-box">
+        <div>🌍 Top paesi</div>
+        {% for paese, count in top_paesi %}{{ paese }}: {{ count }}<br>{% endfor %}
+    </div>
+    <div class="stat-box">
+        <div>📱 Dispositivi</div>
+        {% for dev, count in top_dispositivi %}{{ dev }}: {{ count }}<br>{% endfor %}
+    </div>
+    <div class="stat-box">
+        <div>📌 Fonti traffico</div>
+        {% for fonte, count in top_fonti %}{{ fonte }}: {{ count }}<br>{% endfor %}
+    </div>
+</div>
+
+<form action="/crea" method="post">
+    <h3>➕ Crea un nuovo link TikTok</h3>
+    <input type="url" name="url" placeholder="https://destinazione.com (dove mandare chi clicca)" required>
+    <input type="text" name="campaign" placeholder="Nome campagna (es. video_gatto_01)">
+    <input type="text" name="content" placeholder="Dove lo metti (es. link_in_bio)">
+    <button type="submit">Crea link corto</button>
+</form>
+
+<h3>🔗 I tuoi link tracciati <span class="nota">(copia il link e incollalo su TikTok)</span></h3>
+<table>
+    <thead>
+        <tr>
+            <th>Link corto</th>
+            <th>Destinazione</th>
+            <th>Campagna</th>
+            <th>Creato</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for l in links_view %}
+        <tr>
+            <td><input class="link-box" type="text" readonly value="{{ l.short }}" id="lnk{{ loop.index }}" onclick="this.select()"></td>
+            <td>{{ l.url }}</td>
+            <td>{{ l.campaign }}</td>
+            <td>{{ l.created }}</td>
+            <td><button class="btn-copy" type="button" onclick="copia('lnk{{ loop.index }}')">📋 Copia</button></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="nota">Nessun link creato. Usando il modulo qui sopra.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>🕒 Ultimi click</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Data</th><th>Link</th><th>IP</th><th>Luogo</th><th>Dispositivo</th><th>Fonte</th><th>Campagna</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.timestamp[:16] }}</td>
+            <td>{{ row.short_code }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ row.citta }}, {{ row.paese }}</td>
+            <td>{{ row.device }} ({{ row.os }})</td>
+            <td>{{ row.utm_source }}</td>
+            <td>{{ row.utm_campaign }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="nota">Nessun click registrato.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function copia(id) {
+    var el = document.getElementById(id);
+    el.select();
+    el.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(el.value).then(function(){
+        alert("Link copiato: " + el.value);
+    });
+}
+</script>
+
+</body>
+</html>
